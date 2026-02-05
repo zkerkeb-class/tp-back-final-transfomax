@@ -39,6 +39,36 @@ app.get('/pokemons/:name', async (req, res) => {
   }
 });
 
+app.get('/assets/pokemons/:id', async (req, res) => {
+  try {
+    const pokeId = parseInt(req.params.id);
+    console.log('Searching for Pokemon with ID:', pokeId);
+    const imagePath = `assets/pokemons/${pokeId}.png`;
+    if (imagePath) {
+      res.sendFile(imagePath, { root: '.' });
+    } else {
+      res.status(404).json({ error: 'Pokemon not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
+app.get('/assets/types/:type', async (req, res) => {
+  try {
+    const type = req.params.type.toLowerCase();
+    console.log('Searching for typePokemon with type:', type);
+    const imagePath = `assets/types/${type}.png`;
+    if (imagePath) {;
+      res.sendFile(imagePath, { root: '.' });
+    } else {
+      res.status(404).json({ error: 'Type not found' });
+    }
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.put('/pokemons/update', async (req, res) => {
   console.log('Received PUT request to /pokemons/update');
   try {
