@@ -15,8 +15,26 @@ app.get('/', (req, res) => {
 
 app.get('/pokemons', async (req, res) => {
   try {
-    const pokemons = await pokemon.find().limit(20);
-    res.json(pokemons);
+    const page = parseInt(req.query.page) || 1;
+    const limit = parseInt(req.query.limit) || 20;
+    const skipIndex = (page - 1) * limit;
+
+    const pokemons = await pokemon.find().limit(limit).skip(skipIndex);
+    const totalCount = await pokemon.countDocuments();
+    const totalPages = Math.ceil(totalCount / limit);
+
+    if (page > totalPages) {
+      return res.status(404).json({ error: 'Page not found' });
+    }
+
+    res.json({
+      data: pokemons,
+      meta: {
+        total: totalCount,
+        currentPage: page,
+        totalPages: totalPages
+      }
+    });
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
