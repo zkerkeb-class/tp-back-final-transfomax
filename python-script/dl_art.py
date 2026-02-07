@@ -40,7 +40,7 @@ try:
             image = re.search(r'image\("(.+?)"\)', image)
 
             if image:
-                dl_image(image.group(1), id)
+                dl_image(image.group(1), int(id))
 
             else :
                 continue

@@ -7,11 +7,7 @@ import './connect.js';
 
 const app = express();
 app.use(cors());
-app.use(express.json());
-
-app.get('/', (req, res) => {
-  res.send('Hello, World!');
-});
+app.use(express.json());  
 
 app.get('/pokemons', async (req, res) => {
   try {
@@ -61,12 +57,22 @@ app.get('/assets/pokemons/:id', async (req, res) => {
   try {
     const pokeId = parseInt(req.params.id);
     console.log('Searching for Pokemon with ID:', pokeId);
+
+    const fullArtPath = `assets/pokemons/full-art/${pokeId}.png`;
     const imagePath = `assets/pokemons/${pokeId}.png`;
-    if (imagePath) {
-      res.sendFile(imagePath, { root: '.' });
-    } else {
-      res.status(404).json({ error: 'Pokemon not found' });
-    }
+    
+    res.sendFile(fullArtPath, { root: '.' }, (err) => {
+      if (err) {
+        console.log(`Full art not found for ID ${pokeId}, trying regular image.`);
+        res.sendFile(imagePath, { root: '.' }, (err2) => {
+          if (err2) {
+            console.log(`No image found for ID ${pokeId}`);
+            res.status(404).json({ error: 'Pokemon image not found' });
+          }
+        });
+      }
+    });
+    
   } catch (error) {
     res.status(500).json({ error: 'Internal Server Error' });
   }
