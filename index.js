@@ -60,10 +60,13 @@ app.get('/assets/pokemons/:id', async (req, res) => {
 
     const fullArtPath = `assets/pokemons/full-art/${pokeId}.png`;
     const imagePath = `assets/pokemons/${pokeId}.png`;
+
+    res.set('X-Is-Full-Art', 'true');
     
     res.sendFile(fullArtPath, { root: '.' }, (err) => {
       if (err) {
         console.log(`Full art not found for ID ${pokeId}, trying regular image.`);
+        res.set('X-Is-Full-Art', 'false');
         res.sendFile(imagePath, { root: '.' }, (err2) => {
           if (err2) {
             console.log(`No image found for ID ${pokeId}`);
