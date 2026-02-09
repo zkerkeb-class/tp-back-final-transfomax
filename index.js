@@ -2,6 +2,7 @@ import express from 'express';
 import pokemon from './schema/pokemon.js';
 import {flatten}from 'flat';
 import cors from 'cors';
+import fs from 'fs';
 
 import './connect.js';
 
@@ -15,7 +16,19 @@ app.get('/pokemons', async (req, res) => {
     const limit = parseInt(req.query.limit) || 20;
     const skipIndex = (page - 1) * limit;
 
-    const pokemons = await pokemon.find().limit(limit).skip(skipIndex);
+    const pokemons = await pokemon.find().limit(limit).skip(skipIndex).lean();
+
+    const enrichedPokemons = pokemons.map(p => {
+        const fullArtPath = `assets/pokemons/full-art/${p.id}.png`;
+        
+        const isFullArt = fs.existsSync(fullArtPath);
+
+        return {
+            ...p,
+            isFullArt: isFullArt
+        };
+    });
+
     const totalCount = await pokemon.countDocuments();
     const totalPages = Math.ceil(totalCount / limit);
 
@@ -24,7 +37,7 @@ app.get('/pokemons', async (req, res) => {
     }
 
     res.json({
-      data: pokemons,
+      data: enrichedPokemons,
       meta: {
         total: totalCount,
         currentPage: page,
@@ -61,12 +74,10 @@ app.get('/assets/pokemons/:id', async (req, res) => {
     const fullArtPath = `assets/pokemons/full-art/${pokeId}.png`;
     const imagePath = `assets/pokemons/${pokeId}.png`;
 
-    res.set('X-Is-Full-Art', 'true');
     
     res.sendFile(fullArtPath, { root: '.' }, (err) => {
       if (err) {
         console.log(`Full art not found for ID ${pokeId}, trying regular image.`);
-        res.set('X-Is-Full-Art', 'false');
         res.sendFile(imagePath, { root: '.' }, (err2) => {
           if (err2) {
             console.log(`No image found for ID ${pokeId}`);
