@@ -61,6 +61,21 @@ app.get('/pokemons', async (req, res) => {
   }
 })
 
+app.get('/pokemons/search', async (req, res) => {
+  try {
+    const q = (req.query.q || '').trim();
+    if (!q) {
+      return res.json({ data: [] });
+    }
+
+    const regex = new RegExp(q, 'i');
+    const results = await pokemon.find({ "name.french": { $regex: regex } }).lean();
+    res.json({ data: results });
+  } catch (error) {
+    res.status(500).json({ error: 'Internal Server Error' });
+  }
+});
+
 app.get('/pokemons/:name', async (req, res) => {
   try {
     // On met la premiere lettre en maj comme dans la bdd
