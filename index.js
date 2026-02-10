@@ -148,14 +148,24 @@ app.put('/pokemons/update', upload.single('image'), async (req, res) => {
       try { body.base = JSON.parse(body.base); } catch (e) { body.base = {}; }
     }
 
-    if (!body.name) {
+    const normalizeName = (value) => {
+      if (!value) return '';
+      let normalized = value.toLowerCase();
+      return normalized.charAt(0).toUpperCase() + normalized.slice(1);
+    };
+
+    const searchNameRaw = body.originalName || body.name;
+    const desiredNameRaw = body.newName || body.name;
+
+    if (!searchNameRaw) {
       return res.status(400).json({ error: "Donne au moins un nom je vais pas update dans le vide" });
     }
 
-    console.log('Searching for Pokemon with name:', body.name);
-    let newName = body.name.toLowerCase();
-    newName = newName.charAt(0).toUpperCase() + newName.slice(1);
-    const poke = await pokemon.findOne({ "name.french": newName });
+    const searchName = normalizeName(searchNameRaw);
+    const desiredName = normalizeName(desiredNameRaw);
+
+    console.log('Searching for Pokemon with name:', searchName);
+    const poke = await pokemon.findOne({ "name.french": searchName });
 
     // Helper: move uploaded file to assets/pokemons/{id}.png and return the public URL
     const saveImage = (pokeId) => {
@@ -168,7 +178,9 @@ app.put('/pokemons/update', upload.single('image'), async (req, res) => {
     if (poke) {
       //update
       delete body.name;
-      body['name.french'] = newName;
+      delete body.originalName;
+      delete body.newName;
+      body['name.french'] = desiredName;
 
       const imageUrl = saveImage(poke.id);
       if (imageUrl) body.image = imageUrl;
@@ -192,7 +204,7 @@ app.put('/pokemons/update', upload.single('image'), async (req, res) => {
       const newPokemon = {
         id: newId,
         name: {
-          french: newName
+          french: desiredName
         },
         type: body.type || ["unknown"],
         base: {
