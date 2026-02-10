@@ -6,4 +6,4 @@ Il met les images dl dans pokemon/assets/full-art
 
 **Lien youtube**
 
-[Overview du site](https://youtu.be/X1O-xUZzwzw)
+[Overview du site](https://youtu.be/crsKQLATDuI)
